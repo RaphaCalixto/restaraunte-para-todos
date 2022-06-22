@@ -1,0 +1,569 @@
+{"version":3,"file":"util.js","sources":["../src/util.js"],"sourcesContent":["/**\n * --------------------------------------------------------------------------\n * Bootstrap (v4.3.1): util.js\n * Licensed under MIT (https://github.com/twbs/bootstrap/blob/master/LICENSE)\n * --------------------------------------------------------------------------\n */\n\nimport $ from 'jquery'\n\n/**\n * ------------------------------------------------------------------------\n * Private TransitionEnd Helpers\n * ------------------------------------------------------------------------\n */\n\nconst TRANSITION_END = 'transitionend'\nconst MAX_UID = 1000000\nconst MILLISECONDS_MULTIPLIER = 1000\n\n// Shoutout AngusCroll (https://goo.gl/pxwQGp)\nfunction toType(obj) {\n  return {}.toString.call(obj).match(/\\s([a-z]+)/i)[1].toLowerCase()\n}\n\nfunction getSpecialTransitionEndEvent() {\n  return {\n    bindType: TRANSITION_END,\n    delegateType: TRANSITION_END,\n    handle(event) {\n      if ($(event.target).is(this)) {\n        return event.handleObj.handler.apply(this, arguments) // eslint-disable-line prefer-rest-params\n      }\n      return undefined // eslint-disable-line no-undefined\n    }\n  }\n}\n\nfunction transitionEndEmulator(duration) {\n  let called = false\n\n  $(this).one(Util.TRANSITION_END, () => {\n    called = true\n  })\n\n  setTimeout(() => {\n    if (!called) {\n      Util.triggerTransitionEnd(this)\n    }\n  }, duration)\n\n  return this\n}\n\nfunction setTransitionEndSupport() {\n  $.fn.emulateTransitionEnd = transitionEndEmulator\n  $.event.special[Util.TRANSITION_END] = getSpecialTransitionEndEvent()\n}\n\n/**\n * --------------------------------------------------------------------------\n * Public Util Api\n * --------------------------------------------------------------------------\n */\n\nconst Util = {\n\n  TRANSITION_END: 'bsTransitionEnd',\n\n  getUID(prefix) {\n    do {\n      // eslint-disable-next-line no-bitwise\n      prefix += ~~(Math.random() * MAX_UID) // \"~~\" acts like a faster Math.floor() here\n    } while (document.getElementById(prefix))\n    return prefix\n  },\n\n  getSelectorFromElement(element) {\n    let selector = element.getAttribute('data-target')\n\n    if (!selector || selector === '#') {\n      const hrefAttr = element.getAttribute('href')\n      selector = hrefAttr && hrefAttr !== '#' ? hrefAttr.trim() : ''\n    }\n\n    try {\n      return document.querySelector(selector) ? selector : null\n    } catch (err) {\n      return null\n    }\n  },\n\n  getTransitionDurationFromElement(element) {\n    if (!element) {\n      return 0\n    }\n\n    // Get transition-duration of the element\n    let transitionDuration = $(element).css('transition-duration')\n    let transitionDelay = $(element).css('transition-delay')\n\n    const floatTransitionDuration = parseFloat(transitionDuration)\n    const floatTransitionDelay = parseFloat(transitionDelay)\n\n    // Return 0 if element or transition duration is not found\n    if (!floatTransitionDuration && !floatTransitionDelay) {\n      return 0\n    }\n\n    // If multiple durations are defined, take the first\n    transitionDuration = transitionDuration.split(',')[0]\n    transitionDelay = transitionDelay.split(',')[0]\n\n    return (parseFloat(transitionDuration) + parseFloat(transitionDelay)) * MILLISECONDS_MULTIPLIER\n  },\n\n  reflow(element) {\n    return element.offsetHeight\n  },\n\n  triggerTransitionEnd(element) {\n    $(element).trigger(TRANSITION_END)\n  },\n\n  // TODO: Remove in v5\n  supportsTransitionEnd() {\n    return Boolean(TRANSITION_END)\n  },\n\n  isElement(obj) {\n    return (obj[0] || obj).nodeType\n  },\n\n  typeCheckConfig(componentName, config, configTypes) {\n    for (const property in configTypes) {\n      if (Object.prototype.hasOwnProperty.call(configTypes, property)) {\n        const expectedTypes = configTypes[property]\n        const value         = config[property]\n        const valueType     = value && Util.isElement(value)\n          ? 'element' : toType(value)\n\n        if (!new RegExp(expectedTypes).test(valueType)) {\n          throw new Error(\n            `${componentName.toUpperCase()}: ` +\n            `Option \"${property}\" provided type \"${valueType}\" ` +\n            `but expected type \"${expectedTypes}\".`)\n        }\n      }\n    }\n  },\n\n  findShadowRoot(element) {\n    if (!document.documentElement.attachShadow) {\n      return null\n    }\n\n    // Can find the shadow root otherwise it'll return the document\n    if (typeof element.getRootNode === 'function') {\n      const root = element.getRootNode()\n      return root instanceof ShadowRoot ? root : null\n    }\n\n    if (element instanceof ShadowRoot) {\n      return element\n    }\n\n    // when we don't find a shadow root\n    if (!element.parentNode) {\n      return null\n    }\n\n    return Util.findShadowRoot(element.parentNode)\n  }\n}\n\nsetTransitionEndSupport()\n\nexport default Util\n"],"names":["TRANSITION_END","MAX_UID","MILLISECONDS_MULTIPLIER","toType","obj","toString","call","match","toLowerCase","getSpecialTransitionEndEvent","bindType","delegateType","handle","event","$","target","is","handleObj","handler","apply","arguments","undefined","transitionEndEmulator","duration","called","one","Util","setTimeout","triggerTransitionEnd","setTransitionEndSupport","fn","emulateTransitionEnd","special","getUID","prefix","Math","random","document","getElementById","getSelectorFromElement","element","selector","getAttribute","hrefAttr","trim","querySelector","err","getTransitionDurationFromElement","transitionDuration","css","transitionDelay","floatTransitionDuration","parseFloat","floatTransitionDelay","split","reflow","offsetHeight","trigger","supportsTransitionEnd","Boolean","isElement","nodeType","typeCheckConfig","componentName","config","configTypes","property","Object","prototype","hasOwnProperty","expectedTypes","value","valueType","RegExp","test","Error","toUpperCase","findShadowRoot","documentElement","attachShadow","getRootNode","root","ShadowRoot","parentNode"],"mappings":"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"}text._enter(null, context);
+        } else {
+          context._leave(null, context);
+        }
+      } else {
+        if ($(this.getTipElement()).hasClass(ClassName.SHOW)) {
+          this._leave(null, this);
+
+          return;
+        }
+
+        this._enter(null, this);
+      }
+    };
+
+    _proto.dispose = function dispose() {
+      clearTimeout(this._timeout);
+      $.removeData(this.element, this.constructor.DATA_KEY);
+      $(this.element).off(this.constructor.EVENT_KEY);
+      $(this.element).closest('.modal').off('hide.bs.modal');
+
+      if (this.tip) {
+        $(this.tip).remove();
+      }
+
+      this._isEnabled = null;
+      this._timeout = null;
+      this._hoverState = null;
+      this._activeTrigger = null;
+
+      if (this._popper !== null) {
+        this._popper.destroy();
+      }
+
+      this._popper = null;
+      this.element = null;
+      this.config = null;
+      this.tip = null;
+    };
+
+    _proto.show = function show() {
+      var _this = this;
+
+      if ($(this.element).css('display') === 'none') {
+        throw new Error('Please use show on visible elements');
+      }
+
+      var showEvent = $.Event(this.constructor.Event.SHOW);
+
+      if (this.isWithContent() && this._isEnabled) {
+        $(this.element).trigger(showEvent);
+        var shadowRoot = Util.findShadowRoot(this.element);
+        var isInTheDom = $.contains(shadowRoot !== null ? shadowRoot : this.element.ownerDocument.documentElement, this.element);
+
+        if (showEvent.isDefaultPrevented() || !isInTheDom) {
+          return;
+        }
+
+        var tip = this.getTipElement();
+        var tipId = Util.getUID(this.constructor.NAME);
+        tip.setAttribute('id', tipId);
+        this.element.setAttribute('aria-describedby', tipId);
+        this.setContent();
+
+        if (this.config.animation) {
+          $(tip).addClass(ClassName.FADE);
+        }
+
+        var placement = typeof this.config.placement === 'function' ? this.config.placement.call(this, tip, this.element) : this.config.placement;
+
+        var attachment = this._getAttachment(placement);
+
+        this.addAttachmentClass(attachment);
+
+        var container = this._getContainer();
+
+        $(tip).data(this.constructor.DATA_KEY, this);
+
+        if (!$.contains(this.element.ownerDocument.documentElement, this.tip)) {
+          $(tip).appendTo(container);
+        }
+
+        $(this.element).trigger(this.constructor.Event.INSERTED);
+        this._popper = new Popper(this.element, tip, {
+          placement: attachment,
+          modifiers: {
+            offset: this._getOffset(),
+            flip: {
+              behavior: this.config.fallbackPlacement
+            },
+            arrow: {
+              element: Selector.ARROW
+            },
+            preventOverflow: {
+              boundariesElement: this.config.boundary
+            }
+          },
+          onCreate: function onCreate(data) {
+            if (data.originalPlacement !== data.placement) {
+              _this._handlePopperPlacementChange(data);
+            }
+          },
+          onUpdate: function onUpdate(data) {
+            return _this._handlePopperPlacementChange(data);
+          }
+        });
+        $(tip).addClass(ClassName.SHOW); // If this is a touch-enabled device we add extra
+        // empty mouseover listeners to the body's immediate children;
+        // only needed because of broken event delegation on iOS
+        // https://www.quirksmode.org/blog/archives/2014/02/mouse_event_bub.html
+
+        if ('ontouchstart' in document.documentElement) {
+          $(document.body).children().on('mouseover', null, $.noop);
+        }
+
+        var complete = function complete() {
+          if (_this.config.animation) {
+            _this._fixTransition();
+          }
+
+          var prevHoverState = _this._hoverState;
+          _this._hoverState = null;
+          $(_this.element).trigger(_this.constructor.Event.SHOWN);
+
+          if (prevHoverState === HoverState.OUT) {
+            _this._leave(null, _this);
+          }
+        };
+
+        if ($(this.tip).hasClass(ClassName.FADE)) {
+          var transitionDuration = Util.getTransitionDurationFromElement(this.tip);
+          $(this.tip).one(Util.TRANSITION_END, complete).emulateTransitionEnd(transitionDuration);
+        } else {
+          complete();
+        }
+      }
+    };
+
+    _proto.hide = function hide(callback) {
+      var _this2 = this;
+
+      var tip = this.getTipElement();
+      var hideEvent = $.Event(this.constructor.Event.HIDE);
+
+      var complete = function complete() {
+        if (_this2._hoverState !== HoverState.SHOW && tip.parentNode) {
+          tip.parentNode.removeChild(tip);
+        }
+
+        _this2._cleanTipClass();
+
+        _this2.element.removeAttribute('aria-describedby');
+
+        $(_this2.element).trigger(_this2.constructor.Event.HIDDEN);
+
+        if (_this2._popper !== null) {
+          _this2._popper.destroy();
+        }
+
+        if (callback) {
+          callback();
+        }
+      };
+
+      $(this.element).trigger(hideEvent);
+
+      if (hideEvent.isDefaultPrevented()) {
+        return;
+      }
+
+      $(tip).removeClass(ClassName.SHOW); // If this is a touch-enabled device we remove the extra
+      // empty mouseover listeners we added for iOS support
+
+      if ('ontouchstart' in document.documentElement) {
+        $(document.body).children().off('mouseover', null, $.noop);
+      }
+
+      this._activeTrigger[Trigger.CLICK] = false;
+      this._activeTrigger[Trigger.FOCUS] = false;
+      this._activeTrigger[Trigger.HOVER] = false;
+
+      if ($(this.tip).hasClass(ClassName.FADE)) {
+        var transitionDuration = Util.getTransitionDurationFromElement(tip);
+        $(tip).one(Util.TRANSITION_END, complete).emulateTransitionEnd(transitionDuration);
+      } else {
+        complete();
+      }
+
+      this._hoverState = '';
+    };
+
+    _proto.update = function update() {
+      if (this._popper !== null) {
+        this._popper.scheduleUpdate();
+      }
+    } // Protected
+    ;
+
+    _proto.isWithContent = function isWithContent() {
+      return Boolean(this.getTitle());
+    };
+
+    _proto.addAttachmentClass = function addAttachmentClass(attachment) {
+      $(this.getTipElement()).addClass(CLASS_PREFIX + "-" + attachment);
+    };
+
+    _proto.getTipElement = function getTipElement() {
+      this.tip = this.tip || $(this.config.template)[0];
+      return this.tip;
+    };
+
+    _proto.setContent = function setContent() {
+      var tip = this.getTipElement();
+      this.setElementContent($(tip.querySelectorAll(Selector.TOOLTIP_INNER)), this.getTitle());
+      $(tip).removeClass(ClassName.FADE + " " + ClassName.SHOW);
+    };
+
+    _proto.setElementContent = function setElementContent($element, content) {
+      if (typeof content === 'object' && (content.nodeType || content.jquery)) {
+        // Content is a DOM node or a jQuery
+        if (this.config.html) {
+          if (!$(content).parent().is($element)) {
+            $element.empty().append(content);
+          }
+        } else {
+          $element.text($(content).text());
+        }
+
+        return;
+      }
+
+      if (this.config.html) {
+        if (this.config.sanitize) {
+          content = sanitizeHtml(content, this.config.whiteList, this.config.sanitizeFn);
+        }
+
+        $element.html(content);
+      } else {
+        $element.text(content);
+      }
+    };
+
+    _proto.getTitle = function getTitle() {
+      var title = this.element.getAttribute('data-original-title');
+
+      if (!title) {
+        title = typeof this.config.title === 'function' ? this.config.title.call(this.element) : this.config.title;
+      }
+
+      return title;
+    } // Private
+    ;
+
+    _proto._getOffset = function _getOffset() {
+      var _this3 = this;
+
+      var offset = {};
+
+      if (typeof this.config.offset === 'function') {
+        offset.fn = function (data) {
+          data.offsets = _objectSpread({}, data.offsets, _this3.config.offset(data.offsets, _this3.element) || {});
+          return data;
+        };
+      } else {
+        offset.offset = this.config.offset;
+      }
+
+      return offset;
+    };
+
+    _proto._getContainer = function _getContainer() {
+      if (this.config.container === false) {
+        return document.body;
+      }
+
+      if (Util.isElement(this.config.container)) {
+        return $(this.config.container);
+      }
+
+      return $(document).find(this.config.container);
+    };
+
+    _proto._getAttachment = function _getAttachment(placement) {
+      return AttachmentMap[placement.toUpperCase()];
+    };
+
+    _proto._setListeners = function _setListeners() {
+      var _this4 = this;
+
+      var triggers = this.config.trigger.split(' ');
+      triggers.forEach(function (trigger) {
+        if (trigger === 'click') {
+          $(_this4.element).on(_this4.constructor.Event.CLICK, _this4.config.selector, function (event) {
+            return _this4.toggle(event);
+          });
+        } else if (trigger !== Trigger.MANUAL) {
+          var eventIn = trigger === Trigger.HOVER ? _this4.constructor.Event.MOUSEENTER : _this4.constructor.Event.FOCUSIN;
+          var eventOut = trigger === Trigger.HOVER ? _this4.constructor.Event.MOUSELEAVE : _this4.constructor.Event.FOCUSOUT;
+          $(_this4.element).on(eventIn, _this4.config.selector, function (event) {
+            return _this4._enter(event);
+          }).on(eventOut, _this4.config.selector, function (event) {
+            return _this4._leave(event);
+          });
+        }
+      });
+      $(this.element).closest('.modal').on('hide.bs.modal', function () {
+        if (_this4.element) {
+          _this4.hide();
+        }
+      });
+
+      if (this.config.selector) {
+        this.config = _objectSpread({}, this.config, {
+          trigger: 'manual',
+          selector: ''
+        });
+      } else {
+        this._fixTitle();
+      }
+    };
+
+    _proto._fixTitle = function _fixTitle() {
+      var titleType = typeof this.element.getAttribute('data-original-title');
+
+      if (this.element.getAttribute('title') || titleType !== 'string') {
+        this.element.setAttribute('data-original-title', this.element.getAttribute('title') || '');
+        this.element.setAttribute('title', '');
+      }
+    };
+
+    _proto._enter = function _enter(event, context) {
+      var dataKey = this.constructor.DATA_KEY;
+      context = context || $(event.currentTarget).data(dataKey);
+
+      if (!context) {
+        context = new this.constructor(event.currentTarget, this._getDelegateConfig());
+        $(event.currentTarget).data(dataKey, context);
+      }
+
+      if (event) {
+        context._activeTrigger[event.type === 'focusin' ? Trigger.FOCUS : Trigger.HOVER] = true;
+      }
+
+      if ($(context.getTipElement()).hasClass(ClassName.SHOW) || context._hoverState === HoverState.SHOW) {
+        context._hoverState = HoverState.SHOW;
+        return;
+      }
+
+      clearTimeout(context._timeout);
+      context._hoverState = HoverState.SHOW;
+
+      if (!context.config.delay || !context.config.delay.show) {
+        context.show();
+        return;
+      }
+
+      context._timeout = setTimeout(function () {
+        if (context._hoverState === HoverState.SHOW) {
+          context.show();
+        }
+      }, context.config.delay.show);
+    };
+
+    _proto._leave = function _leave(event, context) {
+      var dataKey = this.constructor.DATA_KEY;
+      context = context || $(event.currentTarget).data(dataKey);
+
+      if (!context) {
+        context = new this.constructor(event.currentTarget, this._getDelegateConfig());
+        $(event.currentTarget).data(dataKey, context);
+      }
+
+      if (event) {
+        context._activeTrigger[event.type === 'focusout' ? Trigger.FOCUS : Trigger.HOVER] = false;
+      }
+
+      if (context._isWithActiveTrigger()) {
+        return;
+      }
+
+      clearTimeout(context._timeout);
+      context._hoverState = HoverState.OUT;
+
+      if (!context.config.delay || !context.config.delay.hide) {
+        context.hide();
+        return;
+      }
+
+      context._timeout = setTimeout(function () {
+        if (context._hoverState === HoverState.OUT) {
+          context.hide();
+        }
+      }, context.config.delay.hide);
+    };
+
+    _proto._isWithActiveTrigger = function _isWithActiveTrigger() {
+      for (var trigger in this._activeTrigger) {
+        if (this._activeTrigger[trigger]) {
+          return true;
+        }
+      }
+
+      return false;
+    };
+
+    _proto._getConfig = function _getConfig(config) {
+      var dataAttributes = $(this.element).data();
+      Object.keys(dataAttributes).forEach(function (dataAttr) {
+        if (DISALLOWED_ATTRIBUTES.indexOf(dataAttr) !== -1) {
+          delete dataAttributes[dataAttr];
+        }
+      });
+      config = _objectSpread({}, this.constructor.Default, dataAttributes, typeof config === 'object' && config ? config : {});
+
+      if (typeof config.delay === 'number') {
+        config.delay = {
+          show: config.delay,
+          hide: config.delay
+        };
+      }
+
+      if (typeof config.title === 'number') {
+        config.title = config.title.toString();
+      }
+
+      if (typeof config.content === 'number') {
+        config.content = config.content.toString();
+      }
+
+      Util.typeCheckConfig(NAME, config, this.constructor.DefaultType);
+
+      if (config.sanitize) {
+        config.template = sanitizeHtml(config.template, config.whiteList, config.sanitizeFn);
+      }
+
+      return config;
+    };
+
+    _proto._getDelegateConfig = function _getDelegateConfig() {
+      var config = {};
+
+      if (this.config) {
+        for (var key in this.config) {
+          if (this.constructor.Default[key] !== this.config[key]) {
+            config[key] = this.config[key];
+          }
+        }
+      }
+
+      return config;
+    };
+
+    _proto._cleanTipClass = function _cleanTipClass() {
+      var $tip = $(this.getTipElement());
+      var tabClass = $tip.attr('class').match(BSCLS_PREFIX_REGEX);
+
+      if (tabClass !== null && tabClass.length) {
+        $tip.removeClass(tabClass.join(''));
+      }
+    };
+
+    _proto._handlePopperPlacementChange = function _handlePopperPlacementChange(popperData) {
+      var popperInstance = popperData.instance;
+      this.tip = popperInstance.popper;
+
+      this._cleanTipClass();
+
+      this.addAttachmentClass(this._getAttachment(popperData.placement));
+    };
+
+    _proto._fixTransition = function _fixTransition() {
+      var tip = this.getTipElement();
+      var initConfigAnimation = this.config.animation;
+
+      if (tip.getAttribute('x-placement') !== null) {
+        return;
+      }
+
+      $(tip).removeClass(ClassName.FADE);
+      this.config.animation = false;
+      this.hide();
+      this.show();
+      this.config.animation = initConfigAnimation;
+    } // Static
+    ;
+
+    Tooltip._jQueryInterface = function _jQueryInterface(config) {
+      return this.each(function () {
+        var data = $(this).data(DATA_KEY);
+
+        var _config = typeof config === 'object' && config;
+
+        if (!data && /dispose|hide/.test(config)) {
+          return;
+        }
+
+        if (!data) {
+          data = new Tooltip(this, _config);
+          $(this).data(DATA_KEY, data);
+        }
+
+        if (typeof config === 'string') {
+          if (typeof data[config] === 'undefined') {
+            throw new TypeError("No method named \"" + config + "\"");
+          }
+
+          data[config]();
+        }
+      });
+    };
+
+    _createClass(Tooltip, null, [{
+      key: "VERSION",
+      get: function get() {
+        return VERSION;
+      }
+    }, {
+      key: "Default",
+      get: function get() {
+        return Default;
+      }
+    }, {
+      key: "NAME",
+      get: function get() {
+        return NAME;
+      }
+    }, {
+      key: "DATA_KEY",
+      get: function get() {
+        return DATA_KEY;
+      }
+    }, {
+      key: "Event",
+      get: function get() {
+        return Event;
+      }
+    }, {
+      key: "EVENT_KEY",
+      get: function get() {
+        return EVENT_KEY;
+      }
+    }, {
+      key: "DefaultType",
+      get: function get() {
+        return DefaultType;
+      }
+    }]);
+
+    return Tooltip;
+  }();
+  /**
+   * ------------------------------------------------------------------------
+   * jQuery
+   * ------------------------------------------------------------------------
+   */
+
+
+  $.fn[NAME] = Tooltip._jQueryInterface;
+  $.fn[NAME].Constructor = Tooltip;
+
+  $.fn[NAME].noConflict = function () {
+    $.fn[NAME] = JQUERY_NO_CONFLICT;
+    return Tooltip._jQueryInterface;
+  };
+
+  return Tooltip;
+
+}));
+//# sourceMappingURL=tooltip.js.map
